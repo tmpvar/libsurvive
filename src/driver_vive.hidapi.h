@@ -172,9 +172,9 @@ static survive_usb_device_t get_next_device(survive_usb_device_enumerator* d, su
 	}
 	
 	for (survive_usb_device_t c = (*d)->next; c; c = c->next) {
-		if (c->interface_number == 0) {
+		//if (c->interface_number == 0) {
 			return *d = c; 
-		}
+		//}
 	}
 	return 0; 
 }
