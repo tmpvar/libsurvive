@@ -205,7 +205,9 @@ add_subdirectory(redist)
 add_subdirectory(src)
 add_subdirectory(tools)
 
-SET(SURVIVE_EXECUTABLES survive-cli api_example sensors-readout survive-solver survive-buttons)
+find_package(xxHash 0.8.1 REQUIRED)
+
+SET(SURVIVE_EXECUTABLES survive-cli api_example remote-hid-libsurvive sensors-readout survive-solver survive-buttons)
 foreach(executable ${SURVIVE_EXECUTABLES})
   VERBOSE_OPTION(ENABLE_${executable} "Build ${executable}" ${BUILD_APPLICATIONS})
 
@@ -215,7 +217,7 @@ foreach(executable ${SURVIVE_EXECUTABLES})
 
   if(ENABLE_${executable})
     add_executable(${executable} ${executable}.c )
-    target_link_libraries(${executable} survive ${${executable}_ADDITIONAL_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(${executable} survive ${${executable}_ADDITIONAL_LIBS} xxHash::xxhash ${CMAKE_THREAD_LIBS_INIT})
     set_target_properties(${executable} PROPERTIES FOLDER "apps")
     foreach(plugin ${SURVIVE_BUILT_PLUGINS})
       add_dependencies(${executable} ${plugin})
