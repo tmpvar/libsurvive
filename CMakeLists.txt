@@ -218,6 +218,11 @@ foreach(executable ${SURVIVE_EXECUTABLES})
   if(ENABLE_${executable})
     add_executable(${executable} ${executable}.c )
     target_link_libraries(${executable} survive ${${executable}_ADDITIONAL_LIBS} xxHash::xxhash ${CMAKE_THREAD_LIBS_INIT})
+
+    if(MSVC)
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:16777216")
+    endif()
+
     set_target_properties(${executable} PROPERTIES FOLDER "apps")
     foreach(plugin ${SURVIVE_BUILT_PLUGINS})
       add_dependencies(${executable} ${plugin})
