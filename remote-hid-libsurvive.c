@@ -148,10 +148,11 @@ int main(int argc, char **argv) {
 			packet.fullState.pos.y = pose.Pos[2];
 			packet.fullState.pos.z = pose.Pos[1];
 
-			packet.fullState.rot.x = pose.Rot[0];
-			packet.fullState.rot.y = pose.Rot[1];
+			// Swizzle wxyz (up=z+) -> xzyw (up=y+)
+			packet.fullState.rot.w = -pose.Rot[0];
+			packet.fullState.rot.x = pose.Rot[1];
+			packet.fullState.rot.y = pose.Rot[3];
 			packet.fullState.rot.z = pose.Rot[2];
-			packet.fullState.rot.w = pose.Rot[3];
 
 			packet.fullState.buttonsCount = 1;
 			packet.fullState.buttons = survive_simple_object_get_button_mask(pose_event->object);
