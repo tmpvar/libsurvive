@@ -136,7 +136,7 @@ IF(UNIX)
 	if(ENABLE_WARNINGS_AS_ERRORS)
 	  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
 	endif()
-	      	
+
 	if(USE_ASAN)
 	  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fsanitize=undefined")
 	  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined")
@@ -145,11 +145,11 @@ IF(UNIX)
 	if(USE_MSAN)
 	  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=memory -fsanitize-memory-track-origins -fsanitize=undefined")
 	  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=memory  -fsanitize-memory-track-origins -fsanitize=undefined")
-	endif()	    
-	
+	endif()
+
 ELSEIF(WIN32)
-  try_compile(HAS_GENERIC_SUPPORT ${CMAKE_BINARY_DIR} "${CMAKE_SOURCE_DIR}/useful_files/generic_test.c" OUTPUT_VARIABLE COMPILE_TEST             
-             COMPILE_DEFINITIONS "/std:c11")  
+  try_compile(HAS_GENERIC_SUPPORT ${CMAKE_BINARY_DIR} "${CMAKE_SOURCE_DIR}/useful_files/generic_test.c" OUTPUT_VARIABLE COMPILE_TEST
+             COMPILE_DEFINITIONS "/std:c11")
   message("Has generic support ${HAS_GENERIC_SUPPORT}")
   add_compile_options(/wd4244 /wd4996 /wd4018 /wd4101 /wd4477 /wd4068 /wd4217)
   if(NOT HAS_GENERIC_SUPPORT)
@@ -205,9 +205,8 @@ add_subdirectory(redist)
 add_subdirectory(src)
 add_subdirectory(tools)
 
-find_package(xxHash 0.8.1 REQUIRED)
 
-SET(SURVIVE_EXECUTABLES survive-cli api_example remote-hid-libsurvive sensors-readout survive-solver survive-buttons)
+SET(SURVIVE_EXECUTABLES survive-cli api_example sensors-readout survive-solver survive-buttons)
 foreach(executable ${SURVIVE_EXECUTABLES})
   VERBOSE_OPTION(ENABLE_${executable} "Build ${executable}" ${BUILD_APPLICATIONS})
 
@@ -217,7 +216,7 @@ foreach(executable ${SURVIVE_EXECUTABLES})
 
   if(ENABLE_${executable})
     add_executable(${executable} ${executable}.c )
-    target_link_libraries(${executable} survive ${${executable}_ADDITIONAL_LIBS} xxHash::xxhash ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(${executable} survive ${${executable}_ADDITIONAL_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
     if(MSVC)
       set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:16777216")
@@ -230,6 +229,28 @@ foreach(executable ${SURVIVE_EXECUTABLES})
     install(TARGETS ${executable} DESTINATION bin/${CMAKE_GENERATOR_PLATFORM})
   endif()
 endforeach()
+
+# remote-hid-libsurvive
+find_package(xxHash 0.8.1 REQUIRED)
+add_executable(remote-hid-libsurvive remote-hid/remote-hid-libsurvive.cpp )
+target_link_libraries(remote-hid-libsurvive
+  survive
+  ${${executable}_ADDITIONAL_LIBS}
+  xxHash::xxhash
+  ${CMAKE_THREAD_LIBS_INIT}
+)
+
+if(MSVC)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:16777216")
+  add_compile_options(/std:c++17)
+endif()
+
+set_target_properties(remote-hid-libsurvive PROPERTIES FOLDER "apps")
+foreach(plugin ${SURVIVE_BUILT_PLUGINS})
+  add_dependencies(remote-hid-libsurvive ${plugin})
+endforeach()
+install(TARGETS remote-hid-libsurvive DESTINATION bin/${CMAKE_GENERATOR_PLATFORM})
+
 
 IF(WIN32)
   # This property needs to be set on a target at the root; doesn't matter which
@@ -259,7 +280,7 @@ if(DOTNET)
 		#SET(DOTNET_RUNTIME_FLAGS "--runtime;win-x86")
 	endif()
   endif()
-  
+
 	message("${DOTNET} build -c Release ${DOTNET_RUNTIME_FLAGS}")
   execute_process(
     COMMAND ${DOTNET} build -c Release ${DOTNET_RUNTIME_FLAGS}
@@ -287,7 +308,7 @@ install(DIRECTORY include/libsurvive DESTINATION include)
 file(GLOB REDIST_HEADERS
   "redist/*.h"
 )
-install(FILES ${REDIST_HEADERS} DESTINATION include/libsurvive/redist)
+install(FILES ${REDIST_HEADERS} DESTINATION include/libsurvive)
 
 if(NOT WIN32 AND PYTHON_GENERATED_DIR)
 
@@ -295,7 +316,7 @@ if(NOT WIN32 AND PYTHON_GENERATED_DIR)
 
   if(CTYPESGEN)
     message("-- Building python bindings file to ${PYTHON_GENERATED_DIR}")
-    message("-- ctypesgen found at ${CTYPESGEN}") 
+    message("-- ctypesgen found at ${CTYPESGEN}")
     get_property(include_directories DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
     set(INCLUDE_FLAGS "")
     foreach(include_directory ${include_directories})
